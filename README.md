@@ -77,6 +77,35 @@ Better backward compatibility on Kodi 19 (Matrix); experimental VLC playback wit
 
 ---
 
+## How to release
+
+`tools/release.py` bumps the add-on version, rebuilds the Kodi repository index, and packs the install zip. It uses only the Python 3 standard library.
+
+```bash
+python3 tools/release.py --check
+python3 tools/release.py 6.6.2 --news "- What changed." --dry-run
+python3 tools/release.py 6.6.2 --news "- What changed."
+```
+
+`--check` succeeds when these all show the same version: `plugin.video.easynewsx/addon.xml` (`version` and the first `<news>` line), `ADDON_VERSION` in `resources/lib/easynews/constants.py`, the welcome line in `resources/userguide.json`, the plugin entry in root `addons.xml`, and the `## Latest release` heading in this README. It also checks that `addons.xml.md5` matches `addons.xml`.
+
+A release updates those spots. Notes that were under Latest release move under Previous releases. Root `addons.xml` is rebuilt from each top-level add-on directory's `addon.xml` (the video add-on and, when you add one, a repository add-on), and `addons.xml.md5` is rewritten beside it. The first release replaces the short `addons.xml` stub with those real add-on elements.
+
+The zip is `<datadir>/<addon id>/<addon id>-<version>.zip`. Its top folder is the add-on id. `__MACOSX`, `.DS_Store`, AppleDouble `._*` files, and Python bytecode are left out. Passing the current version again rebuilds the index and the zip. An existing `<news>` block for that version stays put unless you pass `--news`.
+
+Hosting URLs are set in `tools/release.json`, or with `--datadir`, `--info-url`, `--checksum-url`, and `--datadir-url`:
+
+- `datadir` — local folder for built zips. Default `dist`, relative to the repository root.
+- `info_url` — public URL of `addons.xml` (Kodi `<info>`).
+- `checksum_url` — public URL of `addons.xml.md5` (Kodi `<checksum>`).
+- `datadir_url` — public base URL for `<datadir zip="true">`. Kodi then requests `<datadir_url>/<addon id>/<addon id>-<version>.zip`.
+
+Empty URL fields skip repository add-on URL edits. When a repository add-on source directory is present, a release writes each non-empty URL into its `addon.xml` and packs that add-on with the same datadir layout.
+
+`EasyNewsRepo/repository.easynewsx-1.0.0.zip` stays in the tree as the upstream installer. Its info and checksum point at `https://raw.githubusercontent.com/tetsuosoft/EasyNewsKodi/main/addons.xml` and `addons.xml.md5`, and its datadir is `https://kodi.clientsite.co.uk/`.
+
+---
+
 ## Issues
 
 - **Repository:** [github.com/tetsuosoft/EasyNewsKodi](https://github.com/tetsuosoft/EasyNewsKodi)
